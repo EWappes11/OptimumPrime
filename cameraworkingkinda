@@ -1,0 +1,62 @@
+import cv2 as cv
+import numpy as np
+from PIL import Image
+import time
+from util import get_limits
+
+cap = cv.VideoCapture(1)
+
+while True:
+    # Take each frame
+    _, frame = cap.read()
+
+    # Convert BGR to HSV
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    # define range of blue color in HSV
+    lower_blue = np.array([110, 50, 50])
+    upper_blue = np.array([130, 255, 255])
+
+    #define range of red color in HSV
+    lower_red = np.array([0, 50, 50])
+    upper_red = np.array([60, 255, 255])
+
+    #define range of green in HSV
+    lower_green= np.array([40, 40, 40])
+    upper_green = np.array([80, 255, 255])
+
+    #define range of black is HSV
+    lower_black= np.array([0, 0, 0])
+    upper_black= np.array([179, 50, 30])
+
+    # Threshold the HSV image to get only blue colors
+    mask = cv.inRange(hsv, lower_blue, upper_blue)
+
+    # Bitwise-AND mask and original image
+    res = cv.bitwise_and(frame, frame, mask=mask)
+    #print(res)
+
+    threshold = res.sum()
+    print('pixels', threshold)
+    time.sleep(1)
+
+    cv.imshow('frame', frame)
+    cv.imshow('mask', mask)
+    cv.imshow('res', res)
+
+    mask_ = Image.fromarray(mask)
+
+    bbox = mask_.getbbox()
+
+    if bbox is not None:
+        x1, y1, x2, y2 = bbox
+
+        frame = cv.rectangle(frame, (x1,y1), (x2,y2), (255,192,203), 2)
+
+    cv.imshow('frame', frame)
+
+    k = cv.waitKey(5) & 0xFF
+    if k == 27:
+        break
+
+cv.destroyAllWindows()
